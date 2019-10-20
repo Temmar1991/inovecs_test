@@ -1,0 +1,50 @@
+---
+version: "3"
+services:
+  seeder:
+    container_name: seeder
+    depends_on:
+      - mysql
+    build:
+      context: ./seeder_files
+    env_file: seeder_files/conf/.env
+    networks:
+      - internal
+    links:
+      - mysql
+  backup_service:
+    container_name: backup_server
+    build:
+      context: ./backup_server_files
+    depends_on:
+      - mysql
+    ports:
+      - "9000:9000"
+    env_file: backup_server_files/conf/.env
+    networks:
+      - internal
+  client_service:
+    container_name: backup_client
+    build:
+      context: ./backup_client_files
+    networks:
+      - internal
+    links:
+      - backup_service
+    environment:
+      HOST: backup_service
+  mysql:
+    restart: always
+    container_name: db_mysql
+    image: mysql:5
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: seeder
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: tneu34 
+    networks:
+      - internal
+
+networks:
+  internal:
